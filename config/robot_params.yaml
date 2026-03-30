@@ -1,0 +1,23 @@
+# Robot Parameters for Omnidirectional Robot
+
+# Physical parameters
+wheel_radius: 0.05        # Wheel radius in meters
+base_radius: 0.15         # Distance from center to wheel
+
+# Velocity limits
+max_linear_speed: 1.0     # Maximum linear speed in m/s
+max_angular_speed: 2.0    # Maximum angular speed in rad/s
+
+# Acceleration limits
+max_linear_accel: 0.5     # Maximum linear acceleration in m/s²
+max_angular_accel: 1.0    # Maximum angular acceleration in rad/s²
+
+# Control parameters
+publish_rate: 50.0        # Publishing rate in Hz
+cmd_timeout: 0.5          # Command timeout in seconds
+
+# Diagnostic thresholds
+battery_low_threshold: 11.0   # Low battery warning threshold (V)
+battery_critical_threshold: 10.0  # Critical battery threshold (V)
+temp_warn_threshold: 60.0       # Temperature warning threshold (°C)
+temp_critical_threshold: 80.0   # Temperature critical threshold (°C)

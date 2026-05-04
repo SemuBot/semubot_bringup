@@ -1,7 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -10,10 +8,15 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     serial_port = LaunchConfiguration("serial_port")
     baud_rate = LaunchConfiguration("baud_rate")
-    use_joy = LaunchConfiguration("use_joy")
 
     robot_description_file = LaunchConfiguration("robot_description_file")
     controllers_file = LaunchConfiguration("controllers_file")
+
+    joy_config = PathJoinSubstitution([
+        FindPackageShare("semubot_ros_control"),
+        "config",
+        "joy_config.yaml",
+    ])
 
     robot_description = {
         "robot_description": Command([
@@ -53,6 +56,11 @@ def generate_launch_description():
             controllers_file,
         ],
         output="screen",
+        remappings=[
+            ("/semubot_velocity_controller/cmd_vel", "/cmd_vel"),
+            ("/semubot_velocity_controller/odom", "/odom"),
+            ("/diagnostics", "/controller_manager/diagnostics"),
+        ],
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -77,16 +85,28 @@ def generate_launch_description():
         output="screen",
     )
 
-    joy_teleop_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare("semubot_bringup"),
-                "launch",
-                "joy_teleop.launch.py",
-            ])
-        ]),
-        condition=IfCondition(use_joy),
+    joy_node = Node(
+        package="joy",
+        executable="joy_node",
+        name="joy_node",
+        parameters=[
+            {
+                "device_id": 0,
+                "deadzone": 0.15,
+                "autorepeat_rate": 20.0,
+            }
+        ],
+        output="screen",
     )
+
+    teleop_node = Node(
+        package="teleop_twist_joy",
+        executable="teleop_node",
+        parameters=[joy_config, {"publish_stamped_twist": False}],
+        output="screen",
+    
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             "serial_port",
@@ -98,12 +118,6 @@ def generate_launch_description():
             "baud_rate",
             default_value="115200",
             description="Baud rate for micro-ROS serial transport",
-        ),
-
-        DeclareLaunchArgument(
-            "use_joy",
-            default_value="false",
-            description="Start joystick teleop",
         ),
 
         DeclareLaunchArgument(
@@ -131,5 +145,6 @@ def generate_launch_description():
         ros2_control_node,
         joint_state_broadcaster_spawner,
         semubot_velocity_controller_spawner,
-        joy_teleop_launch,
+        joy_node,
+        teleop_node,
     ])

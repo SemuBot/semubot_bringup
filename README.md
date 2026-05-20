@@ -1,198 +1,179 @@
 # semubot_bringup
 
-Launch and configuration package for Semubot.
+> Launch and configuration package for the SemuBot omnidirectional wheelbase.
 
-This package contains launch files for starting common runtime tools such as joystick teleop and the micro-ROS agent.
+![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-## Current launch files
+---
 
-### joy_teleop.launch.py
+## Overview
 
-Starts joystick input and converts it to `/cmd_vel`.
+`semubot_bringup` provides launch files for bringing up the SemuBot stack. Depending on the use case, individual components (joystick, micro-ROS agent) can be started separately, or the full `ros2ctrl-microros` stack can be launched in one command.
 
-Launch:
+---
 
-    ros2 launch semubot_bringup joy_teleop.launch.py
+## Quick Start
 
-This launch file starts:
+```bash
+# Full stack with joystick
+ros2 launch semubot_bringup ros2ctrl_microros.launch.py
 
-    joy_node
-    teleop_twist_joy_node
+# Full stack, specific serial port
+ros2 launch semubot_bringup ros2ctrl_microros.launch.py serial_port:=/dev/ttyACM0 
+```
 
-Command output:
+---
 
-    /cmd_vel
+## Launch Files
 
-The joystick node reads the controller using:
+### `ros2ctrl_microros.launch.py` — Full stack
 
-    device_id: 0
-    deadzone: 0.15
-    autorepeat_rate: 20.0
+Starts the complete `ros2ctrl-microros` runtime: micro-ROS agent, `ros2_control` node, state broadcaster, and velocity controller.
 
-The teleop node loads:
+```bash
+ros2 launch semubot_bringup ros2ctrl_microros.launch.py [serial_port:=<port>] 
+```
 
-    config/joy_config.yaml
+**Arguments**
 
-The teleop node publishes:
+| Argument | Default | Description |
+|---|---|---|
+| `serial_port` | `/dev/semubot_wheelbase` | STM32 serial device |
 
-    geometry_msgs/msg/Twist
+**Nodes started**
 
-with:
+| Node | Description |
+|---|---|
+| `micro_ros_agent` | Bridges micro-ROS on STM32 to ROS 2 |
+| `robot_state_publisher` | Publishes TF from URDF |
+| `ros2_control_node` | Runs the hardware interface and controllers |
+| `joint_state_broadcaster` | Broadcasts joint states |
+| `semubot_velocity_controller` | Converts `/cmd_vel` to motor commands |
+| `teleop_twist_joy_node` *(optional)* | Converts joystick to `/cmd_vel` |
 
-    publish_stamped_twist: false
+**Config files loaded**
 
-Use this launch file when you want to drive the robot manually with a joystick.
+| File | Purpose |
+|---|---|
+| `semubot_description/urdf/semubot.urdf.xacro` | Robot description |
+| `semubot_ros_control/config/semubot_controllers.yaml` | Controller parameters |
+| `config/joy_config.yaml` | Joystick button mapping |
 
-Check output with:
+**Data flow**
 
-    ros2 topic echo /cmd_vel
+```
+/cmd_vel
+    → semubot_velocity_controller
+    → ros2_control
+    → SemuBotHardwareInterface
+    → /hardware_interface/velocity_cmd  [M1, M2, M3] — PWM duty
+    → STM32 micro-ROS → motors
 
-If `/cmd_vel` is not published, check:
+STM32 encoders
+    → /motor_states
+    → SemuBotHardwareInterface
+    → ros2_control state interfaces
+    → semubot_velocity_controller
+```
 
-    joystick is connected
-    /joy topic exists
-    enable/deadman button is pressed
-    config/joy_config.yaml is installed correctly
+---
 
-Useful checks:
+### `joy_teleop.launch.py` — Joystick teleop only
 
-    ros2 topic echo /joy
-    ros2 topic echo /cmd_vel
+Starts joystick input and converts it to `/cmd_vel`. Use this when controlling the robot manually without launching the full stack.
 
-### agent.launch.py
+```bash
+ros2 launch semubot_bringup joy_teleop.launch.py
+```
 
-Starts the micro-ROS agent for STM32 communication.
+**Nodes started:** `joy_node`, `teleop_twist_joy_node`
 
-Launch with default serial port:
+**Key parameters**
 
-    ros2 launch semubot_bringup agent.launch.py
+| Parameter | Value |
+|---|---|
+| `device_id` | `0` |
+| `deadzone` | `0.15` |
+| `autorepeat_rate` | `20.0` Hz |
+| `publish_stamped_twist` | `false` |
 
-Default serial port:
+**Verify output**
 
-    /dev/semubot_wheelbase
+```bash
+ros2 topic echo /cmd_vel
+```
 
-Launch with a specific serial port:
+**Troubleshooting**
 
-    ros2 launch semubot_bringup agent.launch.py serial_port:=/dev/ttyACM0
+| Symptom | Check |
+|---|---|
+| `/cmd_vel` not published | Joystick connected? `/joy` topic active? |
+| No `/joy` topic | Run `ros2 topic echo /joy` — is `joy_node` alive? |
+| Robot doesn't move | Enable/deadman button held? |
+| Config not applied | Is `config/joy_config.yaml` installed? Run `colcon build` |
 
-This launch file runs:
+---
 
-    micro_ros_agent serial --dev <serial_port> -b 115200
+### `agent.launch.py` — micro-ROS agent only
 
-Use this launch file when the STM32 firmware uses micro-ROS.
+Starts the micro-ROS agent for STM32 communication. Use this when running a stack that requires the agent as a standalone component.
 
-Typical use cases:
+```bash
+# Default port
+ros2 launch semubot_bringup agent.launch.py
 
-    ros2ctrl-microros
-    onboard-microros
+# Specific port
+ros2 launch semubot_bringup agent.launch.py serial_port:=/dev/ttyACM0
+```
 
-If the agent repeatedly reconnects, check:
+Runs: `micro_ros_agent serial --dev <serial_port> -b 115200`
 
-    USB cable
-    STM32 reset behavior
-    firmware stability
-    publishing rate on STM32
-    diagnostics load
-    correct serial port
 
-## Command convention
+**Troubleshooting**
 
-Main robot command topic:
+| Symptom | Check |
+|---|---|
+| `Serial port not found` | `ls /dev/ttyACM*` or `ls /dev/ttyUSB*` — use the correct port |
+| Agent repeatedly reconnects | USB cable, STM32 reset behavior, firmware stability, publishing rate, diagnostics load |
 
-    /cmd_vel
+---
 
-Message type:
+## Command Convention
 
-    geometry_msgs/msg/Twist
+| Topic | Type | Description |
+|---|---|---|
+| `/cmd_vel` | `geometry_msgs/Twist` | High-level velocity command |
+| `/hardware_interface/velocity_cmd` | `std_msgs/Float32MultiArray` | Per-motor PWM duty `[M1, M2, M3]` |
+| `/motor_states` | `std_msgs/Float32MultiArray` | Per-motor encoder feedback |
 
-Meaning:
+**`/cmd_vel` field mapping**
 
-    linear.x  = forward/backward
-    linear.y  = left/right
-    angular.z = rotation/yaw
+| Field | Meaning |
+|---|---|
+| `linear.x` | Forward / backward |
+| `linear.y` | Left / right (strafe) |
+| `angular.z` | Yaw / rotation |
 
-Example forward command:
+**Example — forward at 0.1 m/s**
 
-    ros2 topic pub -r 10 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.10, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
+```bash
+ros2 topic pub -r 10 /cmd_vel geometry_msgs/msg/Twist \
+  "{linear: {x: 0.10, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
+```
 
-## ros2ctrl_microros.launch.py
+---
 
-Starts the full `ros2ctrl-microros` stack.
+## Related Packages
 
-Launch:
+| Package | Description |
+|---|---|
+| [`semubot_ros_control`](https://github.com/SemuBot/semubot_ros_control) | Hardware interface and velocity controller |
+| [`semubot_description`](https://github.com/SemuBot/semubot_description) | URDF and mesh assets |
+| [`SemuBot-Firmware`](https://github.com/SemuBot/semubot-firmware/tree/fw/ros2ctrl-microros) | STM32 firmware (FreeRTOS, micro-ROS, DRV8353) |
 
-    ros2 launch semubot_bringup ros2ctrl_microros.launch.py
+---
 
-With a specific STM32 serial port:
+## **License**
 
-    ros2 launch semubot_bringup ros2ctrl_microros.launch.py serial_port:=/dev/ttyACM0
-
-With joystick teleop enabled:
-
-    ros2 launch semubot_bringup ros2ctrl_microros.launch.py use_joy:=true
-
-With joystick and a specific serial port:
-
-    ros2 launch semubot_bringup ros2ctrl_microros.launch.py serial_port:=/dev/ttyACM0 use_joy:=true
-
-This launch file starts:
-
-    micro_ros_agent
-    robot_state_publisher
-    ros2_control_node
-    joint_state_broadcaster
-    semubot_velocity_controller
-    optional joystick teleop
-
-Default serial port:
-
-    /dev/semubot_wheelbase
-
-Default baud rate:
-
-    115200
-
-The robot description is loaded from:
-
-    semubot_description/urdf/semubot.urdf.xacro
-
-The ros2_control controller config is loaded from:
-
-    semubot_ros_control/config/semubot_controllers.yaml
-
-Expected command flow:
-
-    /cmd_vel
-    -> semubot_velocity_controller
-    -> ros2_control
-    -> semubot_hardware_interface
-    -> /hardware_interface/velocity_cmd
-    -> STM32 micro-ROS
-    -> PWM duty
-
-Encoder feedback flow:
-
-    STM32 encoders
-    -> /motor_states
-    -> semubot_hardware_interface
-    -> ros2_control state interfaces
-    -> semubot_velocity_controller
-
-For this stack, PID is done on the ROS 2 controller side.
-
-The STM32 should act as:
-
-    duty receiver + encoder publisher
-
-If the agent prints:
-
-    Serial port not found
-
-check the STM32 device path:
-
-    ls /dev/ttyACM*
-    ls /dev/ttyUSB*
-
-Then launch with the correct port:
-
-    ros2 launch semubot_bringup ros2ctrl_microros.launch.py serial_port:=/dev/ttyACM0
+This project is licensed under the Apache 2.0 license - see the [LICENSE](LICENSE) file for more information.

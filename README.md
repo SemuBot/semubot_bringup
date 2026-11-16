@@ -58,7 +58,7 @@ ros2 launch semubot_bringup ros2ctrl_microros.launch.py [serial_port:=<port>]
 
 | File | Purpose |
 |---|---|
-| `semubot_description/urdf/semubot.urdf.xacro` | Robot description |
+| `semubot_description/urdf/semubot_v2.urdf.xacro` | Robot description (V2 wheelbase) |
 | `config/profiles/v2.yaml` | Controller, joystick and teleop parameters |
 
 **Data flow**

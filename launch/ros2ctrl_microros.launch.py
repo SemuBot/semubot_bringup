@@ -4,6 +4,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import Command, EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -26,10 +27,10 @@ def generate_launch_description():
     ])
 
     robot_description = {
-        'robot_description': Command([
-            'xacro ',
-            robot_description_file,
-        ])
+        'robot_description': ParameterValue(
+            Command(['xacro ', robot_description_file]),
+            value_type=str,
+        )
     }
 
     agent_node = Node(
@@ -138,7 +139,7 @@ def generate_launch_description():
             default_value=PathJoinSubstitution([
                 FindPackageShare('semubot_description'),
                 'urdf',
-                'semubot.urdf.xacro',
+                'semubot_v2.urdf.xacro',
             ]),
             description='Path to Semubot URDF/Xacro file',
         ),

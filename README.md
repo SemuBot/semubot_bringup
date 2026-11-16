@@ -50,6 +50,7 @@ ros2 launch semubot_bringup ros2ctrl_microros.launch.py [serial_port:=<port>]
 | `ros2_control_node` | Runs the hardware interface and controllers |
 | `joint_state_broadcaster` | Broadcasts joint states |
 | `semubot_velocity_controller` | Converts `/cmd_vel` to motor commands |
+| `motor_fault_diagnostics` | Publishes driver fault bits from `/motor_states` on `/diagnostics` |
 | `teleop_twist_joy_node` *(optional)* | Converts joystick to `/cmd_vel` |
 
 **Config files loaded**

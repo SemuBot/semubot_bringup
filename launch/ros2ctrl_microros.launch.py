@@ -85,6 +85,12 @@ def generate_launch_description():
         output='screen',
     )
 
+    motor_fault_diagnostics_node = Node(
+        package='semubot_ros_control',
+        executable='motor_fault_diagnostics.py',
+        output='screen',
+    )
+
     joy_node = Node(
         package='joy',
         executable='joy_node',
@@ -145,6 +151,7 @@ def generate_launch_description():
         ros2_control_node,
         joint_state_broadcaster_spawner,
         semubot_velocity_controller_spawner,
+        motor_fault_diagnostics_node,
         joy_node,
         teleop_node,
     ])

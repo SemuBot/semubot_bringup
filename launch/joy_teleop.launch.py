@@ -15,7 +15,8 @@ def check_profile(context, profile_file):
 
 def generate_launch_description():
     profile_file = PathJoinSubstitution([
-        FindPackageShare('semubot_config'),
+        FindPackageShare('semubot_bringup'),
+        'config',
         'profiles',
         [LaunchConfiguration('profile'), '.yaml'],
     ])
@@ -40,7 +41,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'profile',
             default_value=EnvironmentVariable('SEMUBOT_PROFILE', default_value='v2'),
-            description='Parameter profile from semubot_config/profiles',
+            description='Parameter profile from config/profiles',
         ),
         OpaqueFunction(function=check_profile, args=[profile_file]),
         joy_node,

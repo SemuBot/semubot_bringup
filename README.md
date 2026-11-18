@@ -39,7 +39,7 @@ ros2 launch semubot_bringup ros2ctrl_microros.launch.py [serial_port:=<port>]
 
 | Argument | Default | Description |
 |---|---|---|
-| `profile` | `$SEMUBOT_PROFILE`, else `v2` | Robot profile: `profiles/<profile>.yaml` in `semubot_config` |
+| `profile` | `$SEMUBOT_PROFILE`, else `v2` | Parameter profile: `config/profiles/<profile>.yaml` |
 | `serial_port` | `$SEMUBOT_WHEELBASE_PORT`, else `/dev/semubot_wheelbase` | STM32 serial device |
 
 **Nodes started**
@@ -59,7 +59,7 @@ ros2 launch semubot_bringup ros2ctrl_microros.launch.py [serial_port:=<port>]
 | File | Purpose |
 |---|---|
 | `semubot_description/urdf/semubot_v2.urdf.xacro` | Robot description (V2 wheelbase) |
-| `semubot_config/profiles/v2.yaml` | Controller, joystick and teleop parameters (sections `controller_manager`, `semubot_velocity_controller`, `joint_state_broadcaster`, `joy_node`, `teleop_twist_joy_node`) |
+| `config/profiles/v2.yaml` | Controller, joystick and teleop parameters |
 
 **Data flow**
 
@@ -112,7 +112,7 @@ ros2 topic echo /cmd_vel
 | `/cmd_vel` not published | Joystick connected? `/joy` topic active? |
 | No `/joy` topic | Run `ros2 topic echo /joy` — is `joy_node` alive? |
 | Robot doesn't move | Enable/deadman button held? |
-| Config not applied | Is `semubot_config` built and sourced? Run `colcon build` |
+| Config not applied | Is `config/profiles/v2.yaml` installed? Run `colcon build` |
 
 ---
 

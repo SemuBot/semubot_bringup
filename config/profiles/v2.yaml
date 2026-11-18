@@ -1,3 +1,6 @@
+# SemuBot V2: STM32 wheelbase over micro-ROS, ros2_control on the Raspberry Pi 5, speech and screens on the NUC.
+# Every component reads its own section; ROS nodes load the file as a parameter file.
+
 controller_manager:
   ros__parameters:
     update_rate: 50
@@ -45,3 +48,17 @@ teleop_twist_joy_node:
     enable_button: 7
     enable_turbo_button: -1
     publish_stamped_twist: false
+
+# Browser joystick: full deflection and the rotate buttons map to these, in m/s and rad/s.
+semubot_webapp:
+  ros__parameters:
+    max_linear_velocity: 0.4
+    max_angular_velocity: 0.4
+
+# Speed scale offered in the chest display's admin menu, published on /semubot/speed_scale.
+semubot_chest_display:
+  ros__parameters:
+    speed_scale_min: 0.1
+    speed_scale_max: 1.0
+    speed_scale_step: 0.1
+    speed_scale_default: 1.0

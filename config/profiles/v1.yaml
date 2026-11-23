@@ -12,3 +12,10 @@ semubot_chest_display:
     speed_scale_max: 1.0
     speed_scale_step: 0.1
     speed_scale_default: 1.0
+
+# Voice and language model of the robot; keys and service addresses stay in ~/.config/semubot/brain.env.
+semu_brain_node:
+  ros__parameters:
+    tts_speaker: mari
+    cloud_provider: claude
+    claude_model: claude-opus-5-5

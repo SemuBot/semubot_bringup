@@ -1,0 +1,64 @@
+# SemuBot V2: STM32 wheelbase over micro-ROS, ros2_control on the Raspberry Pi 5, speech and screens on the NUC.
+# Every component reads its own section; ROS nodes load the file as a parameter file.
+
+controller_manager:
+  ros__parameters:
+    update_rate: 50
+    semubot_velocity_controller:
+      type: semubot_velocity_controller/SemubotVelocityController
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+semubot_velocity_controller:
+  ros__parameters:
+    wheel_radius: 0.062
+    base_radius: 0.213
+    wheel_names: [omni_ball_1_joint, omni_ball_2_joint, omni_ball_3_joint]
+    wheel_angles_deg: [30.0, 150.0, 270.0]
+    drive_offsets_deg: [0.0, 0.0, 0.0]
+    max_linear_velocity: 0.4
+    max_angular_velocity: 0.4
+    kv: [0.044, 0.044, 0.044]
+    ks: [0.025, 0.025, 0.025]
+    kp: 0.01
+    ki: 0.0
+    kd: 0.0
+    max_duty: 0.30
+    max_duty_rate: 1.0
+    integral_limit: 1.0
+    cmd_timeout_sec: 0.5
+
+joint_state_broadcaster:
+  ros__parameters:
+    joints: [omni_ball_1_joint, omni_ball_2_joint, omni_ball_3_joint]
+
+joy_node:
+  ros__parameters:
+    device_id: 0
+    deadzone: 0.15
+    autorepeat_rate: 20.0
+
+teleop_twist_joy_node:
+  ros__parameters:
+    axis_linear: {x: 1, y: 0}
+    axis_angular: {yaw: 2}
+    scale_linear: {x: 0.4, y: 0.4}
+    scale_linear_turbo: {x: 0.4, y: 0.4}
+    scale_angular: {yaw: 0.4}
+    enable_button: 7
+    enable_turbo_button: -1
+    publish_stamped_twist: false
+
+# Browser joystick: full deflection and the rotate buttons map to these, in m/s and rad/s.
+semubot_webapp:
+  ros__parameters:
+    max_linear_velocity: 0.4
+    max_angular_velocity: 0.4
+
+# Speed scale offered in the chest display's admin menu, published on /semubot/speed_scale.
+semubot_chest_display:
+  ros__parameters:
+    speed_scale_min: 0.1
+    speed_scale_max: 1.0
+    speed_scale_step: 0.1
+    speed_scale_default: 1.0

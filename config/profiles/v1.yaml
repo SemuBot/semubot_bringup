@@ -1,0 +1,14 @@
+# SemuBot V1: wheelbase driven from the Raspberry Pi 5 GPIO by semubot_raspberry_bringup, which keeps its
+# own parameters in its launch file. /cmd_vel is unitless, -1..1.
+
+semubot_webapp:
+  ros__parameters:
+    max_linear_velocity: 1.0
+    max_angular_velocity: 1.0
+
+semubot_chest_display:
+  ros__parameters:
+    speed_scale_min: 0.1
+    speed_scale_max: 1.0
+    speed_scale_step: 0.1
+    speed_scale_default: 1.0

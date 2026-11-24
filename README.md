@@ -59,7 +59,7 @@ ros2 launch semubot_bringup ros2ctrl_microros.launch.py [serial_port:=<port>]
 | File | Purpose |
 |---|---|
 | `semubot_description/urdf/semubot_v2.urdf.xacro` | Robot description (V2 wheelbase) |
-| `config/profiles/v2.yaml` | Robot profile: controller, joystick and teleop parameters, plus the sections the brain, the webapp and the chest display read (`semu_brain_node`, `semubot_webapp`, `semubot_chest_display`). One file per robot revision; `v1.yaml` holds only the app sections |
+| `config/profiles/v2.yaml` | Robot profile: controller, joystick and teleop parameters, plus the sections the brain, the webapp and the chest display read (`semu_brain_node`, `semubot_webapp`, `semubot_chest_display`). One file per robot revision; `v1.yaml` holds the V1 drive stack (`semubot_raspberry_bringup`), the brain and the app sections |
 
 **Data flow**
 
